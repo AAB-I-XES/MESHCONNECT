@@ -1,5 +1,5 @@
 {
-  "name": "MeshLink",
+  "name": "meshconnect",
   "description": "Offline-first decentralized mesh messaging, voice calling, encrypted chat, and dynamic P2P network routing",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

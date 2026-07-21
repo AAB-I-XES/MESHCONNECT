@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "MeshLink"
+rootProject.name = "meshconnect"
 
 include(":app")
