@@ -121,13 +121,21 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
             val msgId = "msg_" + UUID.randomUUID().toString().take(8)
             val expiryTime = if (expirySec > 0) System.currentTimeMillis() + (expirySec * 1000L) else 0L
 
+            val targetRecipientId = if (recipientMeshId.isNotBlank() && recipientMeshId != "mesh_peer") {
+                recipientMeshId
+            } else if (conversationId.startsWith("conv_")) {
+                conversationId.removePrefix("conv_")
+            } else {
+                recipientMeshId
+            }
+
             val encryptedPayload = securityEngine.encryptPayload(text)
 
             val newMsg = MessageEntity(
                 messageId = msgId,
                 conversationId = conversationId,
                 senderMeshId = user.meshId,
-                recipientMeshId = recipientMeshId,
+                recipientMeshId = targetRecipientId,
                 content = text,
                 timestamp = System.currentTimeMillis(),
                 status = "SENDING",
@@ -141,15 +149,17 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
             // Ensure conversation exists or update last message
             var conv = db.conversationDao().getConversationById(conversationId)
             if (conv == null) {
+                val contact = db.contactDao().getContactById(targetRecipientId)
+                val peerTitle = contact?.displayName ?: if (targetRecipientId.startsWith("mesh_")) "Mesh Peer (${targetRecipientId.take(12)})" else "Mesh Peer"
                 conv = ConversationEntity(
                     conversationId = conversationId,
-                    title = "Peer (${recipientMeshId.take(8)})",
+                    title = peerTitle,
                     lastMessage = "You: $text",
                     lastTimestamp = System.currentTimeMillis(),
                     unreadCount = 0,
                     isGroup = false,
                     isPinned = false,
-                    participantMeshIds = recipientMeshId
+                    participantMeshIds = targetRecipientId
                 )
                 db.conversationDao().insertConversation(conv)
             } else {
@@ -162,7 +172,7 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
             val packet = MeshPacket(
                 packetId = "pkt_$msgId",
                 sourceMeshId = user.meshId,
-                destinationMeshId = recipientMeshId,
+                destinationMeshId = targetRecipientId,
                 payloadType = PacketPayloadType.CHAT_TEXT,
                 encryptedData = encryptedPayload,
                 ttl = 7,
@@ -179,11 +189,19 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val user = currentUser.value ?: return@launch
             val msgId = "msg_v_" + UUID.randomUUID().toString().take(8)
+            val targetRecipientId = if (recipientMeshId.isNotBlank() && recipientMeshId != "mesh_peer") {
+                recipientMeshId
+            } else if (conversationId.startsWith("conv_")) {
+                conversationId.removePrefix("conv_")
+            } else {
+                recipientMeshId
+            }
+
             val newMsg = MessageEntity(
                 messageId = msgId,
                 conversationId = conversationId,
                 senderMeshId = user.meshId,
-                recipientMeshId = recipientMeshId,
+                recipientMeshId = targetRecipientId,
                 content = "Voice Message ($durationSec sec)",
                 timestamp = System.currentTimeMillis(),
                 status = "DELIVERED",
@@ -197,7 +215,7 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
             val packet = MeshPacket(
                 packetId = "pkt_$msgId",
                 sourceMeshId = user.meshId,
-                destinationMeshId = recipientMeshId,
+                destinationMeshId = targetRecipientId,
                 payloadType = PacketPayloadType.CHAT_VOICE_CHUNK,
                 encryptedData = "OPUS_VOICE_ENCRYPTED_STREAM_CHUNK_DATA",
                 ttl = 7,
@@ -211,12 +229,20 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val user = currentUser.value ?: return@launch
             val msgId = "msg_f_" + UUID.randomUUID().toString().take(8)
+            val targetRecipientId = if (recipientMeshId.isNotBlank() && recipientMeshId != "mesh_peer") {
+                recipientMeshId
+            } else if (conversationId.startsWith("conv_")) {
+                conversationId.removePrefix("conv_")
+            } else {
+                recipientMeshId
+            }
+
             val sizeBytes = (fileSizeMb * 1024 * 1024).toLong()
             val newMsg = MessageEntity(
                 messageId = msgId,
                 conversationId = conversationId,
                 senderMeshId = user.meshId,
-                recipientMeshId = recipientMeshId,
+                recipientMeshId = targetRecipientId,
                 content = "Shared file: $fileName (${"%.1f".format(fileSizeMb)} MB)",
                 timestamp = System.currentTimeMillis(),
                 status = "DELIVERED",
@@ -231,7 +257,7 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
             val packet = MeshPacket(
                 packetId = "pkt_$msgId",
                 sourceMeshId = user.meshId,
-                destinationMeshId = recipientMeshId,
+                destinationMeshId = targetRecipientId,
                 payloadType = PacketPayloadType.CHAT_FILE_CHUNK,
                 encryptedData = "FILE_CHUNK_DATA_AES_256",
                 ttl = 7,

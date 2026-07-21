@@ -63,6 +63,7 @@ class BleManager(
     private var gattServer: BluetoothGattServer? = null
 
     private val activeGattClients = mutableMapOf<String, BluetoothGatt>()
+    private val connectedServerDevices = java.util.concurrent.ConcurrentHashMap.newKeySet<BluetoothDevice>()
 
     private val _isAdvertising = MutableStateFlow(false)
     val isAdvertising: StateFlow<Boolean> = _isAdvertising.asStateFlow()
@@ -115,10 +116,12 @@ class BleManager(
             override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.d(TAG, "GATT Server connected to device ${device.address}")
-                    _connectedPeersCount.value = activeGattClients.size + 1
+                    connectedServerDevices.add(device)
+                    _connectedPeersCount.value = activeGattClients.size + connectedServerDevices.size
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.d(TAG, "GATT Server disconnected from device ${device.address}")
-                    _connectedPeersCount.value = (activeGattClients.size - 1).coerceAtLeast(0)
+                    connectedServerDevices.remove(device)
+                    _connectedPeersCount.value = (activeGattClients.size + connectedServerDevices.size).coerceAtLeast(0)
                 }
             }
 
@@ -252,12 +255,12 @@ class BleManager(
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.d(TAG, "Connected to GATT Client ${device.address}")
                     activeGattClients[device.address] = gatt
-                    _connectedPeersCount.value = activeGattClients.size
+                    _connectedPeersCount.value = activeGattClients.size + connectedServerDevices.size
                     gatt.discoverServices()
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.d(TAG, "Disconnected GATT Client ${device.address}")
                     activeGattClients.remove(device.address)
-                    _connectedPeersCount.value = activeGattClients.size
+                    _connectedPeersCount.value = (activeGattClients.size + connectedServerDevices.size).coerceAtLeast(0)
                     gatt.close()
                 }
             }
@@ -265,6 +268,27 @@ class BleManager(
             override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.d(TAG, "GATT Services discovered for ${device.address}")
+                    val service = gatt.getService(MESH_SERVICE_UUID)
+                    val txChar = service?.getCharacteristic(TX_CHARACTERISTIC_UUID)
+                    if (txChar != null) {
+                        gatt.setCharacteristicNotification(txChar, true)
+                        val descriptor = txChar.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        if (descriptor != null) {
+                            descriptor.value = android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                            gatt.writeDescriptor(descriptor)
+                        }
+                    }
+                }
+            }
+
+            @Deprecated("Deprecated in Java/Android")
+            override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+                if (characteristic.uuid == TX_CHARACTERISTIC_UUID) {
+                    val packet = BinaryPacketSerializer.deserialize(characteristic.value)
+                    if (packet != null) {
+                        Log.d(TAG, "Received GATT notification Packet ${packet.packetId}")
+                        scope.launch { onPacketReceived(packet) }
+                    }
                 }
             }
         }
@@ -285,12 +309,26 @@ class BleManager(
 
     fun broadcastPacket(packet: MeshPacket) {
         val bytes = BinaryPacketSerializer.serialize(packet)
+        // 1. Send to remote GATT Servers via our GATT Clients
         activeGattClients.values.forEach { gatt ->
             val service = gatt.getService(MESH_SERVICE_UUID) ?: return@forEach
             val rxChar = service.getCharacteristic(RX_CHARACTERISTIC_UUID) ?: return@forEach
             rxChar.value = bytes
             rxChar.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             gatt.writeCharacteristic(rxChar)
+        }
+
+        // 2. Notify remote GATT Clients via our local GATT Server
+        val server = gattServer
+        if (server != null && connectedServerDevices.isNotEmpty()) {
+            val service = server.getService(MESH_SERVICE_UUID)
+            val txChar = service?.getCharacteristic(TX_CHARACTERISTIC_UUID)
+            if (txChar != null) {
+                txChar.value = bytes
+                connectedServerDevices.forEach { dev ->
+                    server.notifyCharacteristicChanged(dev, txChar, false)
+                }
+            }
         }
     }
 }

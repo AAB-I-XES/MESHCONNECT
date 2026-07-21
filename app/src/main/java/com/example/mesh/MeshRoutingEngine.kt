@@ -204,12 +204,29 @@ class MeshRoutingEngine(private val context: Context) {
                 val plainText = securityEngine.decryptPayload(packet.encryptedData)
                 val conversationId = "conv_" + packet.sourceMeshId
 
+                // Ensure Contact exists
+                val contact = db.contactDao().getContactById(packet.sourceMeshId)
+                val displayName = contact?.displayName ?: "Mesh Peer (${packet.sourceMeshId.take(8)})"
+                if (contact == null) {
+                    db.contactDao().insertContact(
+                        ContactEntity(
+                            meshId = packet.sourceMeshId,
+                            displayName = displayName,
+                            publicKey = "pub_${packet.sourceMeshId}",
+                            status = "ONLINE",
+                            hopsAway = packet.hopCount,
+                            rssi = -60,
+                            transportType = packet.transport.name
+                        )
+                    )
+                }
+
                 // Ensure Conversation exists
                 var conv = db.conversationDao().getConversationById(conversationId)
                 if (conv == null) {
                     conv = ConversationEntity(
                         conversationId = conversationId,
-                        title = "Peer (${packet.sourceMeshId.take(8)})",
+                        title = displayName,
                         lastMessage = plainText,
                         lastTimestamp = System.currentTimeMillis(),
                         unreadCount = 1,
@@ -221,6 +238,7 @@ class MeshRoutingEngine(private val context: Context) {
                 } else {
                     db.conversationDao().insertConversation(
                         conv.copy(
+                            title = displayName,
                             lastMessage = plainText,
                             lastTimestamp = System.currentTimeMillis(),
                             unreadCount = conv.unreadCount + 1
@@ -228,25 +246,9 @@ class MeshRoutingEngine(private val context: Context) {
                     )
                 }
 
-                // Ensure Contact exists
-                val contact = db.contactDao().getContactById(packet.sourceMeshId)
-                if (contact == null) {
-                    db.contactDao().insertContact(
-                        ContactEntity(
-                            meshId = packet.sourceMeshId,
-                            displayName = "Mesh Peer (${packet.sourceMeshId.take(8)})",
-                            publicKey = "pub_${packet.sourceMeshId}",
-                            status = "ONLINE",
-                            hopsAway = packet.hopCount,
-                            rssi = -60,
-                            transportType = packet.transport.name
-                        )
-                    )
-                }
-
                 // Insert Message
                 val msg = MessageEntity(
-                    messageId = packet.packetId,
+                    messageId = packet.packetId.removePrefix("pkt_"),
                     conversationId = conversationId,
                     senderMeshId = packet.sourceMeshId,
                     recipientMeshId = myMeshId,
@@ -264,7 +266,7 @@ class MeshRoutingEngine(private val context: Context) {
                     sourceMeshId = myMeshId,
                     destinationMeshId = packet.sourceMeshId,
                     payloadType = PacketPayloadType.DELIVERY_ACK,
-                    encryptedData = packet.packetId,
+                    encryptedData = packet.packetId.removePrefix("pkt_"),
                     ttl = 5,
                     hopCount = 0
                 )
@@ -343,6 +345,33 @@ class MeshRoutingEngine(private val context: Context) {
         // Send via Wi-Fi Direct socket if connected
         if (wifiDirectManager.isConnected.value) {
             wifiDirectManager.sendPacketOverSocket(null, packet)
+        }
+
+        // Check if packet destination is local node
+        if (packet.destinationMeshId == myMeshId) {
+            processPacketLocally(packet)
+        } else if (_activeNodes.value.any { it.meshId == packet.destinationMeshId } && bleManager.connectedPeersCount.value == 0 && !wifiDirectManager.isConnected.value) {
+            // Simulated mesh relay delivery and auto-reply for active nodes when testing without physical second phone
+            scope.launch {
+                delay(600)
+                db.messageDao().updateStatus(packet.packetId.removePrefix("pkt_"), "DELIVERED")
+                if (packet.payloadType == PacketPayloadType.CHAT_TEXT) {
+                    delay(1000)
+                    db.messageDao().updateStatus(packet.packetId.removePrefix("pkt_"), "READ")
+                    val plain = securityEngine.decryptPayload(packet.encryptedData)
+                    val replyText = "Received mesh packet for '$plain' [AODV Multi-Hop Relay]"
+                    val autoReplyPacket = MeshPacket(
+                        packetId = "pkt_reply_" + UUID.randomUUID().toString().take(6),
+                        sourceMeshId = packet.destinationMeshId,
+                        destinationMeshId = myMeshId,
+                        payloadType = PacketPayloadType.CHAT_TEXT,
+                        encryptedData = securityEngine.encryptPayload(replyText),
+                        ttl = 5,
+                        hopCount = 1
+                    )
+                    processPacketLocally(autoReplyPacket)
+                }
+            }
         }
 
         db.packetLogDao().insertLog(

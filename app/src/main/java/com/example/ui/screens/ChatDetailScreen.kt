@@ -100,9 +100,15 @@ fun ChatDetailScreen(
     val messages by viewModel.currentMessages.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
 
+    val contacts by viewModel.contacts.collectAsState()
     val conversation = conversations.find { it.conversationId == conversationId }
-    val peerMeshId = conversation?.participantMeshIds?.split(",")?.firstOrNull() ?: "mesh_peer"
-    val peerTitle = conversation?.title ?: "Mesh Node"
+    val peerMeshId = conversation?.participantMeshIds?.split(",")?.firstOrNull()
+        ?.takeIf { it.isNotBlank() && it != "mesh_peer" }
+        ?: if (conversationId.startsWith("conv_")) conversationId.removePrefix("conv_") else "mesh_peer"
+
+    val peerTitle = conversation?.title
+        ?: contacts.find { it.meshId == peerMeshId }?.displayName
+        ?: if (peerMeshId.startsWith("mesh_")) "Mesh Peer (${peerMeshId.take(12)})" else "Mesh Peer"
 
     var textInput by remember { mutableStateOf("") }
     var selectedDisappearingSec by remember { mutableIntStateOf(0) }
