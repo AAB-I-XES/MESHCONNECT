@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -74,17 +79,23 @@ fun VoiceCallScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(NavyBackground)
-            .padding(24.dp)
+            .systemBarsPadding()
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 500.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
         ) {
             // Header Info
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(top = 40.dp)
+                modifier = Modifier.padding(top = 16.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -131,6 +142,8 @@ fun VoiceCallScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Animated Waveform Display
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -152,6 +165,8 @@ fun VoiceCallScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Push To Talk or Standard Call Controls
             Column(
