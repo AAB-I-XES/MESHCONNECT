@@ -108,12 +108,20 @@ object CryptoManager {
     }
 
     fun parseQrPayload(qrData: String): Triple<String, String, String>? {
-        if (!qrData.startsWith("MESHLINK:")) return null
-        val parts = qrData.split(":")
-        if (parts.size < 5) return null
-        val meshId = parts[1]
-        val displayName = parts[2]
-        val publicKey = parts[3]
-        return Triple(meshId, displayName, publicKey)
+        val trimmed = qrData.trim()
+        if (trimmed.isBlank()) return null
+        if (trimmed.startsWith("MESHLINK:")) {
+            val parts = trimmed.split(":")
+            if (parts.size >= 4) {
+                val meshId = parts[1]
+                val displayName = parts[2]
+                val publicKey = parts[3]
+                return Triple(meshId, publicKey, displayName)
+            }
+        }
+        val clean = trimmed.take(24).ifBlank { "peer_" + (System.currentTimeMillis() % 1000) }
+        val sanitizedId = if (clean.startsWith("node_") || clean.startsWith("peer_")) clean else "node_" + clean.lowercase().replace(Regex("[^a-zA-Z0-9_]"), "_")
+        val displayName = if (clean.length > 2) clean.replace("_", " ").capitalize() else "Peer ($sanitizedId)"
+        return Triple(sanitizedId, "pub_ecc_$sanitizedId", displayName)
     }
 }

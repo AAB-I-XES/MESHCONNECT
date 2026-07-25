@@ -13,10 +13,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -92,11 +100,44 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MeshLinkApp(viewModel: MeshLinkViewModel) {
     val navController = rememberNavController()
+    val currentCall by viewModel.voiceCallManager.currentCall.collectAsState()
+
+    LaunchedEffect(currentCall?.state) {
+        if (currentCall?.state == com.example.voice.CallState.INCOMING_RINGING || currentCall?.state == com.example.voice.CallState.OUTGOING_RINGING) {
+            if (navController.currentDestination?.route != "voice_call") {
+                navController.navigate("voice_call")
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
         startDestination = "chat_list",
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth },
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioLowBouncy)
+            ) + fadeIn(animationSpec = tween(280))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy)
+            ) + fadeOut(animationSpec = tween(280))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> -fullWidth / 3 },
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy)
+            ) + fadeIn(animationSpec = tween(280))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> fullWidth },
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioLowBouncy)
+            ) + fadeOut(animationSpec = tween(280))
+        }
     ) {
             composable("chat_list") {
                 ChatListScreen(

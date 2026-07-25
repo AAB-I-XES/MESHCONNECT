@@ -27,6 +27,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.QrCodeScanner
+import com.example.ui.components.RealQrCodeImage
+import com.example.ui.components.QrCodeScannerModal
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -41,6 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.example.ui.components.bounceClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,8 +88,18 @@ fun ContactsScreen(
     val contacts by viewModel.contacts.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     var manualMeshIdInput by remember { mutableStateOf("") }
+    var showScannerModal by remember { mutableStateOf(false) }
 
     val user = currentUser ?: return
+
+    if (showScannerModal) {
+        QrCodeScannerModal(
+            onDismiss = { showScannerModal = false },
+            onQrScanned = { qrData ->
+                viewModel.addContactFromQr(qrData)
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -150,8 +164,8 @@ fun ContactsScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // QR Code Canvas Matrix Visualizer
-                        QrCodeVisualizer(
+                        // Real ZXing QR Code Image
+                        RealQrCodeImage(
                             payload = CryptoManager.generateQrPayload(user.meshId, user.publicKey, user.displayName),
                             modifier = Modifier
                                 .size(160.dp)
@@ -169,6 +183,23 @@ fun ContactsScreen(
                             color = MeshPrimary,
                             fontSize = 13.sp
                         )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Button(
+                            onClick = { showScannerModal = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = MeshPrimary),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp)
+                                .bounceClick(onClick = { showScannerModal = true })
+                                .testTag("scan_qr_camera_button")
+                        ) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR", modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Scan Peer QR Code", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
                     }
                 }
             }
@@ -248,7 +279,9 @@ fun HumanContactCardItem(
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
         shape = RoundedCornerShape(18.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .bounceClick(onClick = onMessageClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

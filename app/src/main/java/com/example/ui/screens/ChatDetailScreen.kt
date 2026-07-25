@@ -48,6 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import com.example.ui.components.bounceClick
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -425,6 +426,19 @@ fun ChatDetailScreen(
                         },
                         modifier = Modifier
                             .size(44.dp)
+                            .bounceClick(onClick = {
+                                if (textInput.isNotBlank()) {
+                                    viewModel.sendTextMessage(
+                                        conversationId = conversationId,
+                                        text = textInput,
+                                        recipientMeshId = peerMeshId,
+                                        expirySec = selectedDisappearingSec
+                                    )
+                                    textInput = ""
+                                } else {
+                                    viewModel.sendVoiceNote(conversationId, peerMeshId, 5)
+                                }
+                            })
                             .clip(CircleShape)
                             .background(MeshPrimary)
                             .testTag("send_message_button")

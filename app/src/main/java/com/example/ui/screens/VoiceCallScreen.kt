@@ -56,13 +56,34 @@ import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
 import com.example.voice.CallState
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import com.example.ui.components.bounceClick
+
 @Composable
 fun VoiceCallScreen(
     viewModel: MeshLinkViewModel,
     onEndCallClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val callSession by viewModel.voiceCallManager.currentCall.collectAsState()
     val waveform by viewModel.voiceCallManager.audioWaveform.collectAsState()
+
+    val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ -> }
+
+    LaunchedEffect(callSession?.state) {
+        if (callSession?.state == CallState.CONNECTED || callSession?.state == CallState.OUTGOING_RINGING) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     val session = callSession ?: return
 
@@ -211,56 +232,113 @@ fun VoiceCallScreen(
                 }
 
                 // Action Bar
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    IconButton(
-                        onClick = { viewModel.voiceCallManager.toggleMute() },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(DarkSurface)
+                if (session.state == CallState.INCOMING_RINGING) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = if (session.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
-                            contentDescription = "Mute",
-                            tint = if (session.isMuted) CoralRed else TextPrimary
-                        )
-                    }
+                        IconButton(
+                            onClick = {
+                                viewModel.voiceCallManager.endCall()
+                                onEndCallClick()
+                            },
+                            modifier = Modifier
+                                .size(64.dp)
+                                .bounceClick(onClick = {
+                                    viewModel.voiceCallManager.endCall()
+                                    onEndCallClick()
+                                })
+                                .clip(CircleShape)
+                                .background(CoralRed)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CallEnd,
+                                contentDescription = "Decline Call",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
 
-                    IconButton(
-                        onClick = {
-                            viewModel.voiceCallManager.endCall()
-                            onEndCallClick()
-                        },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(CoralRed)
-                            .testTag("end_call_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CallEnd,
-                            contentDescription = "End Call",
-                            tint = TextPrimary,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.voiceCallManager.acceptCall()
+                            },
+                            modifier = Modifier
+                                .size(68.dp)
+                                .bounceClick(onClick = {
+                                    viewModel.voiceCallManager.acceptCall()
+                                })
+                                .clip(CircleShape)
+                                .background(EmeraldGreen)
+                                .testTag("accept_call_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Call,
+                                contentDescription = "Answer Call",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
-
-                    IconButton(
-                        onClick = { viewModel.voiceCallManager.toggleSpeaker() },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(DarkSurface)
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.VolumeUp,
-                            contentDescription = "Speaker",
-                            tint = if (session.isSpeakerphone) CyberCyan else TextPrimary
-                        )
+                        IconButton(
+                            onClick = { viewModel.voiceCallManager.toggleMute() },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .bounceClick(onClick = { viewModel.voiceCallManager.toggleMute() })
+                                .clip(CircleShape)
+                                .background(DarkSurface)
+                        ) {
+                            Icon(
+                                imageVector = if (session.isMuted) Icons.Default.MicOff else Icons.Default.Mic,
+                                contentDescription = "Mute",
+                                tint = if (session.isMuted) CoralRed else TextPrimary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                viewModel.voiceCallManager.endCall()
+                                onEndCallClick()
+                            },
+                            modifier = Modifier
+                                .size(64.dp)
+                                .bounceClick(onClick = {
+                                    viewModel.voiceCallManager.endCall()
+                                    onEndCallClick()
+                                })
+                                .clip(CircleShape)
+                                .background(CoralRed)
+                                .testTag("end_call_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CallEnd,
+                                contentDescription = "End Call",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { viewModel.voiceCallManager.toggleSpeaker() },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .bounceClick(onClick = { viewModel.voiceCallManager.toggleSpeaker() })
+                                .clip(CircleShape)
+                                .background(DarkSurface)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VolumeUp,
+                                contentDescription = "Speaker",
+                                tint = if (session.isSpeakerphone) CyberCyan else TextPrimary
+                            )
+                        }
                     }
                 }
             }

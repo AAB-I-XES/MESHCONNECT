@@ -69,6 +69,12 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
+        meshRoutingEngine.voiceCallManager = voiceCallManager
+        voiceCallManager.onSendPacket = { packet ->
+            viewModelScope.launch {
+                meshRoutingEngine.routeAndSendPacket(packet)
+            }
+        }
         ensureInitialSetup()
     }
 
@@ -94,9 +100,13 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
                 db.userDao().insertUser(newUser)
                 meshRoutingEngine.myMeshId = meshId
                 meshRoutingEngine.myName = newUser.displayName
+                voiceCallManager.myMeshId = meshId
+                voiceCallManager.myName = newUser.displayName
             } else {
                 meshRoutingEngine.myMeshId = user.meshId
                 meshRoutingEngine.myName = user.displayName
+                voiceCallManager.myMeshId = user.meshId
+                voiceCallManager.myName = user.displayName
             }
         }
     }
@@ -303,7 +313,7 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
 
     fun addContactFromQr(qrData: String) {
         val parsed = CryptoManager.parseQrPayload(qrData) ?: return
-        val (meshId, displayName, pubKey) = parsed
+        val (meshId, pubKey, displayName) = parsed
         viewModelScope.launch {
             val contact = ContactEntity(
                 meshId = meshId,
@@ -315,6 +325,34 @@ class MeshLinkViewModel(application: Application) : AndroidViewModel(application
                 transportType = "BLE"
             )
             db.contactDao().insertContact(contact)
+
+            val conversationId = "conv_" + meshId
+            val existingConv = db.conversationDao().getConversationById(conversationId)
+            if (existingConv == null) {
+                db.conversationDao().insertConversation(
+                    ConversationEntity(
+                        conversationId = conversationId,
+                        title = displayName,
+                        lastMessage = "QR Key Exchange Completed • Secure P2P Link Established",
+                        lastTimestamp = System.currentTimeMillis(),
+                        unreadCount = 0,
+                        isGroup = false,
+                        isPinned = true,
+                        participantMeshIds = meshId
+                    )
+                )
+            }
+
+            // Send handshake packet back to peer to exchange public keys bidirectional
+            val handshakePkt = MeshPacket(
+                packetId = "hs_" + System.currentTimeMillis(),
+                sourceMeshId = meshRoutingEngine.myMeshId,
+                destinationMeshId = meshId,
+                payloadType = PacketPayloadType.CONTROL_HANDSHAKE,
+                encryptedData = CryptoManager.generateQrPayload(meshRoutingEngine.myMeshId, "pub_handshake", meshRoutingEngine.myName),
+                ttl = 7
+            )
+            meshRoutingEngine.routeAndSendPacket(handshakePkt)
         }
     }
 

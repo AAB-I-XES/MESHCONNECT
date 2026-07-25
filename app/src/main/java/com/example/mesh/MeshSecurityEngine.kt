@@ -18,8 +18,9 @@ class MeshSecurityEngine {
     private val seenNonces = mutableSetOf<String>()
 
     // Master session symmetric key (derived via ECDH in real Signal Double Ratchet)
+    private val masterSeed = com.example.BuildConfig.MESHLINK_MASTER_SECRET.ifBlank { "DEFAULT_MESHLINK_SECRET_KEY" }
     private val masterKeyBytes = MessageDigest.getInstance("SHA-256")
-        .digest("MESHLINK_SECRET_DECENTRALIZED_KEY_2026".toByteArray(Charsets.UTF_8))
+        .digest(masterSeed.toByteArray(Charsets.UTF_8))
     private val secretKey = SecretKeySpec(masterKeyBytes, "AES")
 
     fun encryptPayload(plainText: String): String {

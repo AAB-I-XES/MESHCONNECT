@@ -64,6 +64,7 @@ class MeshRoutingEngine(private val context: Context) {
 
     var myMeshId: String = "mesh_self"
     var myName: String = "Self Node"
+    var voiceCallManager: com.example.voice.MeshVoiceCallManager? = null
 
     val bleManager = BleManager(context) { packet -> handleIncomingPacket(packet) }
     val wifiDirectManager = WifiDirectManager(context) { packet -> handleIncomingPacket(packet) }
@@ -290,6 +291,10 @@ class MeshRoutingEngine(private val context: Context) {
 
             PacketPayloadType.DELIVERY_ACK -> {
                 db.messageDao().updateStatus(packet.encryptedData, "READ")
+            }
+
+            PacketPayloadType.VOICE_CALL_SIGNAL, PacketPayloadType.VOICE_STREAM_DATA -> {
+                voiceCallManager?.handleIncomingPacket(packet)
             }
 
             else -> {}

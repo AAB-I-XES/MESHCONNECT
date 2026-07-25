@@ -34,14 +34,18 @@ fun GlassCard(
         Brush.horizontalGradient(listOf(DarkCardBorder.copy(alpha = 0.6f), DarkCardBorder.copy(alpha = 0.6f)))
     }
 
+    val cardModifier = if (onClick != null) {
+        modifier.bounceClick(onClick = onClick)
+    } else {
+        modifier
+    }
+
     Surface(
-        onClick = { onClick?.invoke() },
-        enabled = onClick != null,
         shape = shape,
         color = DarkSurface.copy(alpha = 0.9f),
         border = BorderStroke(0.5.dp, borderBrush),
         tonalElevation = 2.dp,
-        modifier = modifier
+        modifier = cardModifier
     ) {
         Box(modifier = Modifier.padding(14.dp)) {
             content()
