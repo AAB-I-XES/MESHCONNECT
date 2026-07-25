@@ -17,14 +17,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFD0BCFF),
-    onPrimary = Color(0xFF381E72),
-    primaryContainer = HighDensityPurple,
-    onPrimaryContainer = HighDensityContainer,
-    secondary = Color(0xFFCCC2DC),
-    onSecondary = Color(0xFF332D41),
-    secondaryContainer = Color(0xFF4A4458),
-    onSecondaryContainer = Color(0xFFE8DEF8),
+    primary = MeshPrimary,
+    onPrimary = Color.White,
+    primaryContainer = MeshSubtle,
+    onPrimaryContainer = TextPrimary,
+    secondary = ElectricBlue,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFF1C1C1E),
+    onSecondaryContainer = TextSecondary,
     tertiary = NeonAmber,
     background = NavyBackground,
     onBackground = TextPrimary,
@@ -37,19 +37,19 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = HighDensityPurple,
+    primary = Color(0xFF00893A),
     onPrimary = Color.White,
-    primaryContainer = HighDensityContainer,
-    onPrimaryContainer = HighDensityPurpleDark,
-    secondary = Color(0xFF625B71),
+    primaryContainer = Color(0xFFC8E6C9),
+    onPrimaryContainer = Color(0xFF00200A),
+    secondary = Color(0xFF2E7D32),
     onSecondary = Color.White,
-    background = HighDensityBackgroundLight,
+    background = MeshBackgroundLight,
     surface = Color.White,
-    surfaceVariant = HighDensitySubtle,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    onSurfaceVariant = Color(0xFF49454F),
-    outline = Color(0xFF79747E)
+    surfaceVariant = Color(0xFFE2E8F0),
+    onBackground = Color(0xFF0F171B),
+    onSurface = Color(0xFF0F171B),
+    onSurfaceVariant = Color(0xFF475569),
+    outline = Color(0xFF94A3B8)
 )
 
 @Composable

@@ -73,13 +73,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.database.MessageEntity
 import com.example.ui.MeshLinkViewModel
+import com.example.ui.theme.CyberCyan
 import com.example.ui.theme.DarkCardBorder
 import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.DarkSurfaceElevated
 import com.example.ui.theme.ElectricBlue
 import com.example.ui.theme.EmeraldGreen
-import com.example.ui.theme.HighDensityContainer
-import com.example.ui.theme.HighDensityPurple
+import com.example.ui.theme.MeshContainer
+import com.example.ui.theme.MeshPrimary
 import com.example.ui.theme.NavyBackground
 import com.example.ui.theme.NeonAmber
 import com.example.ui.theme.TextPrimary
@@ -139,7 +140,7 @@ fun ChatDetailScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape)
-                                    .background(Brush.linearGradient(listOf(HighDensityPurple, ElectricBlue))),
+                                    .background(Brush.linearGradient(listOf(MeshPrimary, EmeraldGreen))),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -203,7 +204,7 @@ fun ChatDetailScreen(
                         onClick = { onStartCall(peerMeshId, peerTitle, true) },
                         modifier = Modifier.testTag("walkie_talkie_button")
                     ) {
-                        Icon(Icons.Default.Radio, contentDescription = "Push To Talk", tint = HighDensityContainer)
+                        Icon(Icons.Default.Radio, contentDescription = "Push To Talk", tint = MeshPrimary)
                     }
                     IconButton(onClick = { showMenu = !showMenu }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More Options", tint = TextPrimary)
@@ -333,11 +334,11 @@ fun ChatDetailScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = HighDensityPurple.copy(alpha = 0.2f),
+                            color = MeshPrimary.copy(alpha = 0.2f),
                             modifier = Modifier.size(44.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = HighDensityPurple)
+                                Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = MeshPrimary)
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -353,11 +354,11 @@ fun ChatDetailScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = ElectricBlue.copy(alpha = 0.2f),
+                            color = EmeraldGreen.copy(alpha = 0.2f),
                             modifier = Modifier.size(44.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Mic, contentDescription = null, tint = ElectricBlue)
+                                Icon(Icons.Default.Mic, contentDescription = null, tint = EmeraldGreen)
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -395,7 +396,7 @@ fun ChatDetailScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = DarkSurfaceElevated,
                             unfocusedContainerColor = DarkSurfaceElevated,
-                            focusedBorderColor = HighDensityPurple,
+                            focusedBorderColor = MeshPrimary,
                             unfocusedBorderColor = Color.Transparent,
                             focusedTextColor = TextPrimary,
                             unfocusedTextColor = TextPrimary
@@ -425,7 +426,7 @@ fun ChatDetailScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(HighDensityPurple)
+                            .background(MeshPrimary)
                             .testTag("send_message_button")
                     ) {
                         Icon(
@@ -456,7 +457,7 @@ fun HumanMessageBubble(
         RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp)
     }
 
-    val bubbleColor = if (isMe) HighDensityPurple else DarkSurfaceElevated
+    val bubbleColor = if (isMe) MeshPrimary else DarkSurfaceElevated
 
     Column(
         horizontalAlignment = if (isMe) Alignment.End else Alignment.Start,
@@ -478,14 +479,14 @@ fun HumanMessageBubble(
                         Icon(
                             imageVector = Icons.Default.Pin,
                             contentDescription = "Pinned",
-                            tint = if (isMe) Color.White.copy(alpha = 0.8f) else HighDensityContainer,
+                            tint = if (isMe) Color.White.copy(alpha = 0.8f) else MeshPrimary,
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Pinned",
                             fontSize = 11.sp,
-                            color = if (isMe) Color.White.copy(alpha = 0.8f) else HighDensityContainer
+                            color = if (isMe) Color.White.copy(alpha = 0.8f) else MeshPrimary
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -497,7 +498,7 @@ fun HumanMessageBubble(
                             Icon(
                                 imageVector = Icons.Default.Mic,
                                 contentDescription = null,
-                                tint = if (isMe) Color.White else HighDensityContainer
+                                tint = if (isMe) Color.White else MeshPrimary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -513,7 +514,7 @@ fun HumanMessageBubble(
                             Icon(
                                 imageVector = Icons.Default.InsertDriveFile,
                                 contentDescription = null,
-                                tint = if (isMe) Color.White else HighDensityContainer
+                                tint = if (isMe) Color.White else MeshPrimary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {

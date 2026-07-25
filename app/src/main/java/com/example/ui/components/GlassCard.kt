@@ -22,28 +22,28 @@ import com.example.ui.theme.ElectricBlue
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    cornerRadius: Dp = 16.dp,
+    cornerRadius: Dp = 18.dp,
     hasAccentGlow: Boolean = false,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(cornerRadius)
     val borderBrush = if (hasAccentGlow) {
-        Brush.horizontalGradient(listOf(CyberCyan.copy(alpha = 0.6f), ElectricBlue.copy(alpha = 0.6f)))
+        Brush.horizontalGradient(listOf(CyberCyan.copy(alpha = 0.5f), ElectricBlue.copy(alpha = 0.5f)))
     } else {
-        Brush.horizontalGradient(listOf(DarkCardBorder, DarkCardBorder))
+        Brush.horizontalGradient(listOf(DarkCardBorder.copy(alpha = 0.6f), DarkCardBorder.copy(alpha = 0.6f)))
     }
 
     Surface(
         onClick = { onClick?.invoke() },
         enabled = onClick != null,
         shape = shape,
-        color = DarkSurface.copy(alpha = 0.85f),
-        border = BorderStroke(1.dp, borderBrush),
-        tonalElevation = 4.dp,
+        color = DarkSurface.copy(alpha = 0.9f),
+        border = BorderStroke(0.5.dp, borderBrush),
+        tonalElevation = 2.dp,
         modifier = modifier
     ) {
-        Box(modifier = Modifier.padding(12.dp)) {
+        Box(modifier = Modifier.padding(14.dp)) {
             content()
         }
     }

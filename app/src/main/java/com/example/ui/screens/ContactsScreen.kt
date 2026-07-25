@@ -63,11 +63,13 @@ import com.example.data.database.ContactEntity
 import com.example.security.CryptoManager
 import com.example.ui.MeshLinkViewModel
 import com.example.ui.components.MeshStatusBadge
+import com.example.ui.theme.CyberCyan
 import com.example.ui.theme.DarkCardBorder
 import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.DarkSurfaceElevated
 import com.example.ui.theme.ElectricBlue
-import com.example.ui.theme.HighDensityPurple
+import com.example.ui.theme.EmeraldGreen
+import com.example.ui.theme.MeshPrimary
 import com.example.ui.theme.NavyBackground
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
@@ -164,7 +166,7 @@ fun ContactsScreen(
                             text = "Mesh ID: ${user.meshId}",
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
-                            color = HighDensityPurple,
+                            color = MeshPrimary,
                             fontSize = 13.sp
                         )
                     }
@@ -186,7 +188,7 @@ fun ContactsScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = DarkSurface,
                             unfocusedContainerColor = DarkSurface,
-                            focusedBorderColor = HighDensityPurple,
+                            focusedBorderColor = MeshPrimary,
                             unfocusedBorderColor = Color.Transparent,
                             focusedTextColor = TextPrimary,
                             unfocusedTextColor = TextPrimary
@@ -204,7 +206,7 @@ fun ContactsScreen(
                                 manualMeshIdInput = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = HighDensityPurple, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MeshPrimary, contentColor = Color.White),
                         shape = CircleShape,
                         modifier = Modifier
                             .size(50.dp)
@@ -261,7 +263,7 @@ fun HumanContactCardItem(
                         .size(46.dp)
                         .clip(CircleShape)
                         .background(
-                            Brush.linearGradient(listOf(HighDensityPurple, ElectricBlue))
+                            Brush.linearGradient(listOf(MeshPrimary, EmeraldGreen))
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -299,7 +301,7 @@ fun HumanContactCardItem(
                 onClick = onMessageClick,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(HighDensityPurple)
+                    .background(MeshPrimary)
             ) {
                 Icon(Icons.Default.Chat, contentDescription = "Chat", tint = Color.White)
             }

@@ -80,14 +80,14 @@ import androidx.compose.ui.unit.sp
 import com.example.data.database.ConversationEntity
 import com.example.mesh.DiscoveredPeer
 import com.example.ui.MeshLinkViewModel
+import com.example.ui.theme.CyberCyan
 import com.example.ui.theme.DarkCardBorder
 import com.example.ui.theme.DarkSurface
 import com.example.ui.theme.DarkSurfaceElevated
 import com.example.ui.theme.ElectricBlue
 import com.example.ui.theme.EmeraldGreen
-import com.example.ui.theme.HighDensityContainer
-import com.example.ui.theme.HighDensityPurple
-import com.example.ui.theme.HighDensityPurpleDark
+import com.example.ui.theme.MeshContainer
+import com.example.ui.theme.MeshPrimary
 import com.example.ui.theme.NavyBackground
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
@@ -121,12 +121,12 @@ fun ChatListScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = CircleShape,
-                            color = HighDensityPurple,
+                            color = MeshPrimary,
                             modifier = Modifier.size(38.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = "ML",
+                                    text = "MC",
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
                                     fontSize = 15.sp
@@ -185,19 +185,19 @@ fun ChatListScreen(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = DarkSurfaceElevated,
+                containerColor = DarkSurface,
                 contentColor = TextPrimary,
-                modifier = Modifier.height(68.dp)
+                windowInsets = WindowInsets(0, 0, 0, 0)
             ) {
                 NavigationBarItem(
                     selected = selectedNavTab == 0,
                     onClick = { selectedNavTab = 0 },
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Chats") },
-                    label = { Text("Chats", fontSize = 11.sp) },
+                    label = { Text("Chats", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = HighDensityPurpleDark,
-                        selectedTextColor = HighDensityPurple,
-                        indicatorColor = HighDensityContainer,
+                        selectedIconColor = Color.White,
+                        selectedTextColor = MeshPrimary,
+                        indicatorColor = MeshPrimary.copy(alpha = 0.25f),
                         unselectedIconColor = TextSecondary,
                         unselectedTextColor = TextSecondary
                     )
@@ -209,11 +209,11 @@ fun ChatListScreen(
                         onNavigateToVisualizer()
                     },
                     icon = { Icon(Icons.Default.Hub, contentDescription = "Network Map") },
-                    label = { Text("Map", fontSize = 11.sp) },
+                    label = { Text("Map", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = HighDensityPurpleDark,
-                        selectedTextColor = HighDensityPurple,
-                        indicatorColor = HighDensityContainer,
+                        selectedIconColor = Color.White,
+                        selectedTextColor = MeshPrimary,
+                        indicatorColor = MeshPrimary.copy(alpha = 0.25f),
                         unselectedIconColor = TextSecondary,
                         unselectedTextColor = TextSecondary
                     )
@@ -225,11 +225,11 @@ fun ChatListScreen(
                         onNavigateToContacts()
                     },
                     icon = { Icon(Icons.Default.Call, contentDescription = "Contacts") },
-                    label = { Text("Peers", fontSize = 11.sp) },
+                    label = { Text("Peers", fontSize = 11.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = HighDensityPurpleDark,
-                        selectedTextColor = HighDensityPurple,
-                        indicatorColor = HighDensityContainer,
+                        selectedIconColor = Color.White,
+                        selectedTextColor = MeshPrimary,
+                        indicatorColor = MeshPrimary.copy(alpha = 0.25f),
                         unselectedIconColor = TextSecondary,
                         unselectedTextColor = TextSecondary
                     )
@@ -239,7 +239,7 @@ fun ChatListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToContacts,
-                containerColor = HighDensityPurple,
+                containerColor = MeshPrimary,
                 contentColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier.testTag("new_chat_fab")
@@ -262,7 +262,6 @@ fun ChatListScreen(
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
                     .padding(padding)
-                    .navigationBarsPadding()
                     .imePadding()
                     .padding(horizontal = 16.dp)
             ) {
@@ -313,7 +312,7 @@ fun ChatListScreen(
 
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = HighDensityPurple.copy(alpha = 0.15f)
+                        color = MeshPrimary.copy(alpha = 0.15f)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -322,7 +321,7 @@ fun ChatListScreen(
                             Icon(
                                 imageVector = Icons.Default.Map,
                                 contentDescription = "View Map",
-                                tint = HighDensityPurple,
+                                tint = MeshPrimary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -330,7 +329,7 @@ fun ChatListScreen(
                                 text = "Map",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = HighDensityPurple
+                                color = MeshPrimary
                             )
                         }
                     }
@@ -378,7 +377,7 @@ fun ChatListScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = DarkSurfaceElevated,
                     unfocusedContainerColor = DarkSurface,
-                    focusedBorderColor = HighDensityPurple,
+                    focusedBorderColor = MeshPrimary,
                     unfocusedBorderColor = Color.Transparent,
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
@@ -474,7 +473,7 @@ fun DiscoveredPeerAvatar(
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            listOf(HighDensityPurple, ElectricBlue)
+                            listOf(MeshPrimary, EmeraldGreen)
                         )
                     ),
                 contentAlignment = Alignment.Center
@@ -546,7 +545,7 @@ fun HumanConversationCard(
                         .clip(CircleShape)
                         .background(
                             Brush.linearGradient(
-                                listOf(HighDensityPurple, ElectricBlue)
+                                listOf(MeshPrimary, EmeraldGreen)
                             )
                         ),
                     contentAlignment = Alignment.Center
@@ -572,7 +571,7 @@ fun HumanConversationCard(
                     Icon(
                         imageVector = if (conversation.title.contains("Wi-Fi", ignoreCase = true)) Icons.Default.Wifi else Icons.Default.Bluetooth,
                         contentDescription = null,
-                        tint = HighDensityPurple,
+                        tint = MeshPrimary,
                         modifier = Modifier.size(10.dp)
                     )
                 }
@@ -623,7 +622,7 @@ fun HumanConversationCard(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(HighDensityPurple)
+                                .background(MeshPrimary)
                                 .padding(horizontal = 7.dp, vertical = 2.dp)
                         ) {
                             Text(

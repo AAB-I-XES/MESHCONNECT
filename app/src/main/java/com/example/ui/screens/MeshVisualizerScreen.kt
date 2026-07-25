@@ -148,7 +148,7 @@ fun MeshVisualizerScreen(
                         label = { Text(label, fontSize = 11.sp) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyberCyan,
-                            selectedLabelColor = NavyBackground,
+                            selectedLabelColor = Color.White,
                             containerColor = DarkSurface,
                             labelColor = TextSecondary
                         ),
